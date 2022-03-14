@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 
 import { Header } from '../components/Header';
 import { Task, TasksList } from '../components/TasksList';
@@ -9,13 +9,21 @@ export function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
 
   function handleAddTask(newTaskTitle: string) {
-    const newTask : Task = {
-      id: new Date().getTime(),
-      done: false,
-      title: newTaskTitle
-    }
+    const verifyIfTaskExists = tasks.find(task => task.title === newTaskTitle);
 
-    setTasks([...tasks, newTask])
+    if(verifyIfTaskExists) {
+      Alert.alert("Task já cadastrada", "Você não pode cadastrar uma task com o mesmo nome", [{text: 'OK'}])
+    } else {
+      const newTask : Task = {
+        id: new Date().getTime(),
+        done: false,
+        title: newTaskTitle
+      }
+
+      setTasks([...tasks, newTask])
+    }  
+
+    
   }
 
   function handleToggleTaskDone(id: number) {
@@ -31,8 +39,25 @@ export function Home() {
   }
 
   function handleRemoveTask(id: number) {
-    //TODO - remove task from state
-    setTasks(tasks.filter(task => id != task.id));
+    Alert.alert(
+      "Remover item", 
+      "Tem certeza que você deseja remover esse item?", 
+      [
+        {text: 'Sim', onPress: () => setTasks(tasks.filter(task => id != task.id))},
+        {text: 'Não'}
+      ], 
+    )
+  }
+
+  function handleEditTask(id: number, title: string) {
+    const newTask = tasks.find(task => task.id === id);
+    
+    if(newTask) {
+      const newTasks = tasks.filter(task => task.id != id);
+      newTask.title = title;
+      
+      setTasks([...newTasks, newTask].sort((a, b) => a.id - b.id))
+    }
   }
 
   return (
@@ -44,7 +69,8 @@ export function Home() {
       <TasksList 
         tasks={tasks} 
         toggleTaskDone={handleToggleTaskDone}
-        removeTask={handleRemoveTask} 
+        removeTask={handleRemoveTask}
+        editTask={handleEditTask}
       />
     </View>
   )
